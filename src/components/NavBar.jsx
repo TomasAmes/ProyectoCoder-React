@@ -1,8 +1,12 @@
 import { Flex, Text, Menu, MenuButton, Button, MenuList, MenuItem } from "@chakra-ui/react";
 import CartWidget from "./CartWidget";
+import { useNavigate } from "react-router";
   
 
 const NavBar = () => {
+
+  const navigate = useNavigate()
+
     return (
       <Flex 
         alignItems="center" 
@@ -21,7 +25,7 @@ const NavBar = () => {
                 <MenuItem>Asia</MenuItem>
                 </MenuList>
             </Menu>
-            <Text fontWeight="bold" fontSize="xl">Logo Tienda</Text>
+            <Text fontWeight="bold" fontSize="xl" onClick = {() => navigate("/")} cursor = {'pointer'}>Logo Tienda</Text>
             <CartWidget />
       </Flex>
     );
