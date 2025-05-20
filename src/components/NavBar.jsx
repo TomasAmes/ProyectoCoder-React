@@ -50,7 +50,6 @@ const NavBar = () => {
           <span>Mi Tienda</span>
         </Link>
 
-        {/* Menú para pantallas medianas y grandes */}
         <div className="hidden md:flex space-x-6">
           <NavLink
             to="/"

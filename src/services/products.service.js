@@ -1,4 +1,3 @@
-
 const products = [
     {
       id: "1",
@@ -74,16 +73,13 @@ const products = [
     }
   ];
   
-  // Simular un retraso de red
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   
-  // Obtener todos los productos
   export const getProducts = async () => {
     await delay(1000);
     return [...products];
   };
   
-  // Obtener un producto por ID
   export const getProductById = async (id) => {
     await delay(1000);
     const product = products.find(product => product.id === id);
@@ -93,14 +89,12 @@ const products = [
     return { ...product };
   };
   
-  // Obtener productos por categoría
   export const getProductsByCategory = async (categoryId) => {
     await delay(1000);
     const filteredProducts = products.filter(product => product.category === categoryId);
     return [...filteredProducts];
   };
   
-  // Obtener todas las categorías disponibles
   export const getCategories = async () => {
     await delay(500);
     const categories = [

@@ -7,7 +7,6 @@ const ItemDetail = ({ product }) => {
 
   const handleOnAdd = (quantity) => {
     setQuantityAdded(quantity);
-    // Aquí iría la lógica para agregar al carrito (en futuras entregas)
     console.log(`Se agregaron ${quantity} unidades de ${product.title} al carrito`);
   };
 

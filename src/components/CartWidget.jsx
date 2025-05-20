@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 const CartWidget = () => {
-// Este estado podría conectarse a un contexto de carrito real en el futuro
 const [itemCount, setItemCount] = useState(0);
 
 return (
