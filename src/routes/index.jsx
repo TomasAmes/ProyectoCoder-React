@@ -13,7 +13,7 @@ const routes = [
             },
             {
                 path: "/products",
-                elemnet: <>Prodcuts</>,
+                elemnet: <>Products</>,
             },
         ]
     }
