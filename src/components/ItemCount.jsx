@@ -1,18 +1,29 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useContext } from 'react';
+import { CartContext } from '../context/CartContext';
 
-const ItemCount = ({ stock, initial = 1, onAdd }) => {
-  const [count, setCount] = useState(initial);
+
+const ItemCount = ({ stock, initial = 0, onAdd, product }) => {
+  const {
+    cart: cartState, 
+    addProductToCart, 
+    removeProductFromCart, 
+    getTotalPrice 
+  } = useContext(CartContext);
+
+  const count = useMemo(() => {
+    const existingProduct = cartState.find(item => item.id === product.id);
+    return existingProduct ? existingProduct.quantity : initial;
+  }, [cartState, product.id, initial]);
+
 
   const handleIncrement = () => {
-    if (count < stock) {
-      setCount(count + 1);
-    }
+    addProductToCart(product)
+    console.log(cartState)
   };
 
   const handleDecrement = () => {
-    if (count > 1) {
-      setCount(count - 1);
-    }
+    removeProductFromCart(product)
   };
 
   const buttonStyle = {
@@ -56,8 +67,8 @@ const ItemCount = ({ stock, initial = 1, onAdd }) => {
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
         <button 
           onClick={handleDecrement}
-          disabled={count <= 1}
-          style={count <= 1 ? disabledButtonStyle : buttonStyle}
+          disabled={count == 0}
+          style={count == 0 ? disabledButtonStyle : buttonStyle}
         >
           -
         </button>
@@ -72,8 +83,8 @@ const ItemCount = ({ stock, initial = 1, onAdd }) => {
       </div>
       <button 
         onClick={() => onAdd(count)}
-        disabled={stock <= 0}
-        style={stock <= 0 ? disabledAddButtonStyle : addButtonStyle}
+        disabled={stock == 0}
+        style={stock == 0 ? disabledAddButtonStyle : addButtonStyle}
       >
         {stock > 0 ? 'Agregar al carrito' : 'Sin stock'}
       </button>

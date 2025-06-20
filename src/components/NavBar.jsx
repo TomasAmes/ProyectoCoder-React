@@ -1,27 +1,50 @@
-import { useState, useEffect } from "react";
-import { Link, NavLink } from "react-router-dom";
+import {
+  Box,
+  Flex,
+  IconButton,
+  Link as ChakraLink,
+  useDisclosure,
+  Stack,
+  Badge,
+  Text,
+  HStack,
+} from "@chakra-ui/react";
+import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
+import { useState, useEffect, useMemo } from "react";
+import { Link as RouterLink, NavLink } from "react-router-dom";
 import CartWidget from "./CartWidget";
-import { getCategories } from "../services/products.service";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../services/config/firebase";
+import { CartContext } from "../context/CartContext";
+import { useContext } from "react";
 
 const NavBar = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [error, setError] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    cart: cartState,
+  } = useContext(CartContext);
+
+  const itemsCount = useMemo(() => {
+    return cartState.reduce((acc, item) => acc + 1, 0); 
+  }, [cartState]);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const categoriesData = await getCategories();
-        setCategories(categoriesData);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const itemsCollection = collection(db, "categories");
 
-    fetchCategories();
+    getDocs(itemsCollection)
+      .then((snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setCategories(data);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
 
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -31,60 +54,126 @@ const NavBar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-md py-2" : "bg-white/90 py-4"
-      }`}
+    <Box
+      as="nav"
+      zIndex="1000"
+      bg={scrolled ? "white" : "whiteAlpha.900"}
+      boxShadow={scrolled ? "sm" : "none"}
+      py={scrolled ? 2 : 4}
+      transition="all 0.3s"
     >
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link
+      <Flex
+        maxW="container.xl"
+        mx="auto"
+        px={4}
+        align="center"
+        justify="space-between"
+      >
+        <ChakraLink
+          as={RouterLink}
           to="/"
-          className="flex items-center space-x-2 text-xl font-bold text-blue-600"
+          display="flex"
+          alignItems="center"
+          fontWeight="bold"
+          fontSize="xl"
+          color="blue.600"
+          _hover={{ textDecoration: "none", color: "blue.800" }}
         >
-          <span className="text-2xl">🛍️</span>
-          <span>Mi Tienda</span>
-        </Link>
-
-        <div className="hidden md:flex space-x-6">
+          <Text fontSize="2xl" mr={2}>🛍️</Text> Mi Tienda
+        </ChakraLink>
+        <HStack spacing={6} display={{ base: "none", md: "flex" }}>
           <NavLink
             to="/"
             className={({ isActive }) =>
               isActive
-                ? "text-blue-600 font-medium"
-                : "text-gray-700 hover:text-blue-600 transition-colors"
+                ? "chakra-text text-blue-600 font-medium border-b-2 border-blue-600 pb-1"
+                : "chakra-text text-gray-700 hover:text-blue-600"
             }
           >
             Inicio
           </NavLink>
-
           {!loading &&
-            categories.map((category) => (
+            categories.map((cat) => (
               <NavLink
-                key={category.id}
-                to={`/category/${category.id}`}
+                key={cat.id}
+                to={`/category/${cat.id}`}
                 className={({ isActive }) =>
                   isActive
-                    ? "text-blue-600 font-medium"
-                    : "text-gray-700 hover:text-blue-600 transition-colors"
+                    ? "chakra-text text-blue-600 font-medium border-b-2 border-blue-600 pb-1"
+                    : "chakra-text text-gray-700 hover:text-blue-600"
                 }
               >
-                {category.name}
+                {cat.name}
               </NavLink>
             ))}
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <Link to="/cart" className="relative">
+        </HStack>
+        <Flex align="center">
+          <ChakraLink as={RouterLink} to="/cart" position="relative" mr={4}>
             <CartWidget />
-          </Link>
-        </div>
-      </div>
-    </nav>
+            {itemsCount > 0 && (
+              <Badge
+                colorScheme="red"
+                borderRadius="full"
+                fontSize="0.7em"
+                position="absolute"
+                top="-1"
+                right="-1"
+                px={2}
+              >
+                {itemsCount}
+              </Badge>
+            )}
+          </ChakraLink>
+          <IconButton
+            display={{ base: "inline-flex", md: "none" }}
+            onClick={isOpen ? onClose : onOpen}
+            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+            variant="ghost"
+            aria-label="Toggle Navigation"
+          />
+        </Flex>
+      </Flex>
+      {isOpen && (
+        <Box
+          mt={2}
+          px={4}
+          py={4}
+          bg="white"
+          shadow="md"
+          display={{ md: "none" }}
+        >
+          <Stack spacing={4} align="center">
+            <NavLink
+              to="/"
+              onClick={onClose}
+              className={({ isActive }) =>
+                isActive
+                  ? "text-blue-600 font-medium"
+                  : "text-gray-700 hover:text-blue-600"
+              }
+            >
+              Inicio
+            </NavLink>
+            {!loading &&
+              categories.map((cat) => (
+                <NavLink
+                  key={cat.id}
+                  to={`/category/${cat.id}`}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-blue-600 font-medium"
+                      : "text-gray-700 hover:text-blue-600"
+                  }
+                >
+                  {cat.name}
+                </NavLink>
+              ))}
+          </Stack>
+        </Box>
+      )}
+    </Box>
   );
 };
 
